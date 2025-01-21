@@ -1,11 +1,14 @@
 package com.example.gains
 
+import android.content.ContentValues.TAG
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -17,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gains.ui.theme.GainsTheme
 import com.example.gains.ui.theme.medium
+import java.text.NumberFormat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +39,10 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.Center
                     ) {
                         ProteinGoal(88, 130)
-                        Steps(84444, 10000)
+                        TextColumn()
+                        MainButton("Log Protein") { buttonClick("Clicked Log Protein") }
+                        MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
+                        MainButton("Workouts") { buttonClick("Clicked Workouts") }
                     }
                 }
             }
@@ -43,12 +50,36 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun buttonClick(text: String) {
+    Log.d(TAG, "buttonClick: $text")
+}
+
+fun getStepText(): Array<String> {
+    val current = 8444
+    val target = 10000
+    val remaining: Int = target - current
+    val text1 = "Steps: ${NumberFormat.getNumberInstance().format(current)}"
+    val text2 = "${
+        NumberFormat.getNumberInstance().format(remaining)
+    } remaining of ${NumberFormat.getNumberInstance().format(target)}"
+    return arrayOf(text1, text2)
+}
+
+fun getActivitiesText(): Array<String> {
+    val text1 = "Today's Activities:"
+    val text2 = "4m Run"
+    val text3 = "45min Strength"
+    val text4 = "15min Mobility"
+    return arrayOf(text1, text2, text3, text4)
+}
+
 @Composable
 fun ProteinGoal(current: Int, goal: Int) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .requiredSize(100.dp) // Enforces the size to not stretch
+            .requiredSize(150.dp) // Enforces the size to not stretch
+            .padding(16.dp)
             .background(color = medium, shape = CircleShape)
     ) {
         Text(
@@ -60,11 +91,38 @@ fun ProteinGoal(current: Int, goal: Int) {
 }
 
 @Composable
-fun Steps(current: Int, goal: Int) {
-    val remaining: Int = current - goal
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "Steps: $current")
-        Text(text = "$remaining remaining of $goal")
+fun TextColumn() {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(20.dp)) {
+        TextChunk(getStepText())
+        TextChunk(getActivitiesText())
+    }
+}
+
+@Composable
+fun TextChunk(textArr: Array<String>) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        textArr.forEach { text ->
+            Text(text = text)
+        }
+    }
+}
+
+@Composable
+fun MainButton(text: String, onClick: () -> Unit) {
+    Button(
+        onClick = { onClick() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        Text(text)
     }
 }
 
@@ -83,7 +141,10 @@ fun DefaultPreview() {
                 verticalArrangement = Arrangement.Center
             ) {
                 ProteinGoal(88, 130)
-                Steps(84444, 10000)
+                TextColumn()
+                MainButton("Log Protein") { buttonClick("Clicked Log Protein") }
+                MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
+                MainButton("Workouts") { buttonClick("Clicked Workouts") }
             }
         }
     }
