@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.example.gains'
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.example.gains"
@@ -60,4 +60,8 @@ dependencies {
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
     debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+
+    // navigation
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.28.0"
+    implementation "androidx.navigation:navigation-compose:2.5.3"
 }
