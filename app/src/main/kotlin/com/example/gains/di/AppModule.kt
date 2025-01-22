@@ -31,4 +31,9 @@ object AppModule {
     fun provideNutritionDao(database: GainsRoomDB): NutritionDao {
         return database.nutritionDao()
     }
+
+    @Provides
+    fun provideNutritionRepository(nutritionDao: NutritionDao): NutritionRepository {
+        return NutritionRepositoryImpl(nutritionDao)
+    }
 }

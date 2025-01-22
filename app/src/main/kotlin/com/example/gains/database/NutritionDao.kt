@@ -1,6 +1,7 @@
 package com.example.gains.database
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 // what tables do we need
@@ -9,11 +10,11 @@ import java.time.LocalDate
 
 @Dao
 interface NutritionDao {
-    @Query("Select * FROM nutrition")
-    fun getAllLogs(): List<NutritionLog>
+    @Query("SELECT * FROM nutrition")
+    fun getAllLogs(): Flow<List<NutritionLog>>
 
-    @Query("Select * FROM nutrition WHERE date = :logDate")
-    fun getLogByDate(logDate: LocalDate): List<NutritionLog>
+    @Query("SELECT * FROM nutrition WHERE date = :logDate")
+    fun getLogs(logDate: LocalDate): Flow<List<NutritionLog>>
 
     @Insert
     suspend fun addLog(log: NutritionLog)
