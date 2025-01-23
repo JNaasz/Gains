@@ -8,7 +8,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -23,12 +22,6 @@ class NutritionViewModel @Inject constructor(
     // stateIn converts the flow to a stateFlow
     // when component is no longer needed it will stop collecting automatically
     // while subscribed means it will only collect while something is subscribed and stop collecting 5 seconds after collection ends
-
-    fun addLog(newLog: NutritionLog) {
-        viewModelScope.launch {
-            nutritionRepository.addLog(newLog)
-        }
-    }
 
     fun deleteLog(log: NutritionLog) {
         Log.d("Nutrition Repository", "deleteLog: ${log.foodName}")
