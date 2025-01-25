@@ -81,7 +81,7 @@ class LogNutritionViewModel @Inject constructor(
             foodName = customFood,
             unit = selectedSizeUnit,
             size = quantityInput,
-            protein = customProteinContent
+            protein = quantityInput * customProteinContent // multiply for total protein
         )
 
         onShowDialog()

@@ -1,6 +1,5 @@
 package com.example.gains.features.nutrition
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gains.database.NutritionLog
@@ -8,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -24,6 +24,8 @@ class NutritionViewModel @Inject constructor(
     // while subscribed means it will only collect while something is subscribed and stop collecting 5 seconds after collection ends
 
     fun deleteLog(log: NutritionLog) {
-        Log.d("Nutrition Repository", "deleteLog: ${log.foodName}")
+        viewModelScope.launch {
+            nutritionRepository.deleteLog(log)
+        }
     }
 }

@@ -20,7 +20,11 @@ import com.example.gains.features.nutrition.NutritionViewModel
 import com.example.gains.ui.common.NavBackIcon
 import com.example.gains.ui.common.NavBar
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import com.example.gains.features.nutrition.SizeUnit
+import com.example.gains.ui.common.SelectionButton
 
 @Composable
 fun NutritionScreen(
@@ -56,19 +60,24 @@ fun NutritionContent(
                 .fillMaxWidth()
         ) {
             items(logs) { log ->
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
+                        .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    ProteinLog(log)
+                    ProteinLog(
+                        log,
+                        modifier = Modifier.weight(2f)
+                    )
                     Button(
                         onClick = { viewModel.deleteLog(log) },
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.weight(1f)
                     ) {
                         Text("Delete")
                     }
                 }
+                HorizontalDivider()
             }
         }
 
@@ -86,19 +95,37 @@ fun NutritionContent(
 
         // Add Item button at the bottom
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.Center
+            modifier = Modifier.padding(start = 25.dp, end = 25.dp, bottom = 25.dp)
         ) {
-            Button(onClick = navToLogNutrition) {
-                Text("Add Item")
-            }
+            SelectionButton(
+                label = "Add Item",
+                action = { navToLogNutrition() },
+                enabled = true
+            )
         }
     }
 }
 
 @Composable
-fun ProteinLog(log: NutritionLog) {
-    Text("${log.foodName} | ${log.size}${log.unit} | ${log.protein}g protein")
+fun ProteinLog(log: NutritionLog, modifier: Modifier) {
+    val sizeText = if (log.unit == SizeUnit.SERVING.symbol) {
+        "Servings: ${log.size}"
+    } else {
+        "${log.size}${log.unit}"
+    }
+
+    Column(
+        modifier = modifier
+    ) {
+        Text(
+            text = log.foodName
+        )
+        Text(
+            text = sizeText
+        )
+        Text(
+            text = "${log.protein}g protein"
+        )
+
+    }
 }
