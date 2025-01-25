@@ -5,8 +5,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.gains.ui.screens.LogNutritionScreen
 import com.example.gains.ui.screens.HomeScreen
+import com.example.gains.ui.screens.logNutrition.LogNutritionScreen
 import com.example.gains.ui.screens.NutritionScreen
 
 @Composable

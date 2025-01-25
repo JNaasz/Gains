@@ -14,6 +14,6 @@ data class NutritionLog(
     @ColumnInfo(name = "date") var date: LocalDate = LocalDate.now(),
     @ColumnInfo(name = "foodName") var foodName: String,
     @ColumnInfo(name = "unit") var unit: String,
-    @ColumnInfo(name = "size") var size: Int,
-    @ColumnInfo(name = "protein") var protein: Int
+    @ColumnInfo(name = "size") var size: Float,
+    @ColumnInfo(name = "protein") var protein: Float
 ) : Parcelable
