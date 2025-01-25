@@ -10,25 +10,36 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.gains.features.home.HomeViewModel
 import com.example.gains.ui.theme.GainsTheme
+import com.example.gains.ui.theme.high
+import com.example.gains.ui.theme.low
 import com.example.gains.ui.theme.medium
+import com.example.gains.ui.theme.percentText
 import java.text.NumberFormat
 
 @Composable
 fun HomeScreen(
     navigateToNutrition: () -> Unit,
 ) {
+    val viewModel: HomeViewModel = hiltViewModel()
+    val proteinTotal by viewModel.proteinTotal.collectAsState()
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        ProteinGoal(88, 130)
+        ProteinGoal(proteinTotal.toInt(), 130)
         TextColumn()
         MainButton("Log Protein") { navigateToNutrition() }
         MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
@@ -61,17 +72,26 @@ fun getActivitiesText(): Array<String> {
 
 @Composable
 fun ProteinGoal(current: Int, goal: Int) {
+    val percentComplete = (current / goal.toFloat()) * 100
+
+    val color = if (percentComplete >= 100F) {
+        high
+    } else if (percentComplete > 50F) {
+        medium
+    } else low
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .requiredSize(150.dp) // Enforces the size to not stretch
+            .requiredSize(170.dp) // Enforces the size to not stretch
             .padding(16.dp)
-            .background(color = medium, shape = CircleShape)
+            .background(color = color, shape = CircleShape)
     ) {
         Text(
             text = "$current / $goal",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 16.sp
+            color = percentText,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
         )
     }
 }

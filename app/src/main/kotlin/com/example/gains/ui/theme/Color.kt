@@ -14,6 +14,7 @@ val Pink40 = Color(0xFF7D5260)
 val Background40 = Color(0xFFF5DDDD)
 
 // progress colors
-val low = Color(0xB00B10)
+val low = Color(0xFFB00B10)
 val medium = Color(0xFFE6E20E)
 val high = Color(0xFF117D2E)
+val percentText = Color(0xFFFFFFFF)

@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.gains.database.NutritionDao
 import com.example.gains.database.NutritionLog
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 interface NutritionRepository {
@@ -13,6 +14,7 @@ interface NutritionRepository {
     // addLog
     // updateLog
     // deleteLog
+    // calculate protein? or in util function
 }
 
 class NutritionRepositoryImpl(
