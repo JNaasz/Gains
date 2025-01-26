@@ -9,6 +9,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,7 +40,7 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        ProteinGoal(proteinTotal.toInt(), 130)
+        ProteinGoal(proteinTotal.toInt(), 130, navigateToNutrition)
         TextColumn()
         MainButton("Log Protein") { navigateToNutrition() }
         MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
@@ -71,7 +72,7 @@ fun getActivitiesText(): Array<String> {
 }
 
 @Composable
-fun ProteinGoal(current: Int, goal: Int) {
+fun ProteinGoal(current: Int, goal: Int, navigateToNutrition: () -> Unit) {
     val percentComplete = (current / goal.toFloat()) * 100
 
     val color = if (percentComplete >= 100F) {
@@ -87,12 +88,18 @@ fun ProteinGoal(current: Int, goal: Int) {
             .padding(16.dp)
             .background(color = color, shape = CircleShape)
     ) {
-        Text(
-            text = "$current / $goal",
-            color = percentText,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
+        TextButton(
+            onClick = {
+                navigateToNutrition()
+            },
+        ) {
+            Text(
+                text = "$current / $goal",
+                color = percentText,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -146,7 +153,7 @@ fun DefaultPreview() {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                ProteinGoal(88, 130)
+                ProteinGoal(88, 130, {})
                 TextColumn()
                 MainButton("Log Protein") { buttonClick("Clicked Log Protein") }
                 MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gains.database.NutritionLog
+import com.example.gains.features.nutrition.Util.createOptionsList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,13 +24,10 @@ class LogNutritionViewModel @Inject constructor(
     val showDialog: StateFlow<Boolean> = _showDialog
     private var pendingLog: NutritionLog? = null
 
-    val sizeUnits: List<String> = listOf(
-        SizeUnit.G.symbol,
-        SizeUnit.OZ.symbol,
-        SizeUnit.SERVING.symbol
-    )
-
+    val sizeUnits = Util.sizeUnits
     val sourceList: List<String> = createOptionsList()
+//    val dateToday: LocalDate = LocalDate.now()
+//    var selectedDate = dateToday
 
     private var quantityInput: Float = 0F
     private var selectedSizeUnit: String = SizeUnit.G.symbol
@@ -107,13 +105,6 @@ class LogNutritionViewModel @Inject constructor(
         // TODO: set up DB to store selections and add them
         Log.i("LogNutritionViewModel", "storeCustomItem")
         onDismissDialog()
-    }
-
-    private fun createOptionsList(): List<String> {
-        // pull options form config file
-        // eventually pull form spread sheet or DB
-        // need to make a DB for this so it can be updated and modified from inside and outside the app
-        return listOf("Custom", "Chicken", "Beef", "Ham")
     }
 
     private fun setButtonsEnabled() {

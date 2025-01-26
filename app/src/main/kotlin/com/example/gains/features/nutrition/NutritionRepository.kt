@@ -3,12 +3,14 @@ package com.example.gains.features.nutrition
 import com.example.gains.database.NutritionDao
 import com.example.gains.database.NutritionLog
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 interface NutritionRepository {
     fun getLogs(date: LocalDate): Flow<List<NutritionLog>>
     suspend fun addLog(newLog: NutritionLog)
     suspend fun deleteLog(log: NutritionLog)
+    fun getProteinTotal(date: LocalDate): Flow<Float>
     // getLogs by date range?
     // addLog
     // updateLog
@@ -28,5 +30,13 @@ class NutritionRepositoryImpl(
 
     override suspend fun deleteLog(log: NutritionLog) {
         nutritionDao.deleteLog(log)
+    }
+
+    override fun getProteinTotal(date: LocalDate): Flow<Float> {
+        return getLogs(date)
+            .map { logs ->
+                logs.sumOf { it.protein.toBigDecimal() } // need to sum as BigDecimal
+                    .toFloat()
+            }
     }
 }

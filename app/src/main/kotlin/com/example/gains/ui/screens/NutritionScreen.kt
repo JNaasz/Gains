@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+
 import com.example.gains.features.nutrition.SizeUnit
 import com.example.gains.ui.common.SelectionButton
 
@@ -31,9 +32,18 @@ fun NutritionScreen(
     popBackStack: () -> Unit,
     navToLogNutrition: () -> Unit,
 ) {
+    val viewModel: NutritionViewModel = hiltViewModel()
+    val currentProteinTotal by viewModel.currentProteinTotal.collectAsState()
+
     NavBar(
-        title = "Protein Log",
-        scrollContent = { paddingValues: PaddingValues -> NutritionContent(paddingValues, navToLogNutrition) },
+        title = "Logged Today: ${currentProteinTotal.toInt()}g",
+        scrollContent = { paddingValues: PaddingValues ->
+            NutritionContent(
+                paddingValues,
+                navToLogNutrition,
+                viewModel
+            )
+        },
         optionalActionComponent = {
             NavBackIcon(popBackStack)
         }
@@ -43,9 +53,9 @@ fun NutritionScreen(
 @Composable
 fun NutritionContent(
     paddingValues: PaddingValues,
-    navToLogNutrition: () -> Unit
+    navToLogNutrition: () -> Unit,
+    viewModel: NutritionViewModel
 ) {
-    val viewModel: NutritionViewModel = hiltViewModel()
     val logs by viewModel.nutritionLogs.collectAsState()
 
     Column(

@@ -19,9 +19,9 @@ class NutritionViewModel @Inject constructor(
 
     val nutritionLogs: StateFlow<List<NutritionLog>> = nutritionRepository.getLogs(date)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    // stateIn converts the flow to a stateFlow
-    // when component is no longer needed it will stop collecting automatically
-    // while subscribed means it will only collect while something is subscribed and stop collecting 5 seconds after collection ends
+
+    val currentProteinTotal: StateFlow<Float> = nutritionRepository.getProteinTotal(date)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0F)
 
     fun deleteLog(log: NutritionLog) {
         viewModelScope.launch {
