@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gains.database.NutritionLog
+import com.example.gains.features.nutrition.Util.CUSTOM
 import com.example.gains.features.nutrition.Util.createOptionsList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,22 +19,26 @@ class LogNutritionViewModel @Inject constructor(
 ) : ViewModel() {
     private val _customButtonEnabled = MutableStateFlow(false)
     val customButtonEnabled: StateFlow<Boolean> = _customButtonEnabled
+
     private val _selectionButtonEnabled = MutableStateFlow(false)
     val selectionButtonEnabled: StateFlow<Boolean> = _selectionButtonEnabled
+
     private val _showDialog = MutableStateFlow(false)
     val showDialog: StateFlow<Boolean> = _showDialog
-    private var pendingLog: NutritionLog? = null
+
+    private val _addCustomItem = MutableStateFlow(true)
+    val addCustomItem: StateFlow<Boolean> = _addCustomItem
 
     val sizeUnits = Util.sizeUnits
     val sourceList: List<String> = createOptionsList()
-//    val dateToday: LocalDate = LocalDate.now()
-//    var selectedDate = dateToday
+    var selectedDate: LocalDate = LocalDate.now()
 
     private var quantityInput: Float = 0F
     private var selectedSizeUnit: String = SizeUnit.G.symbol
     private var selectedFood: String = ""
     private var customFood: String = ""
     private var customProteinContent: Float = 0F
+    private var pendingLog: NutritionLog? = null
 
     fun setQuantityInput(quantity: String) {
         quantityInput = quantity.toFloatOrNull() ?: 0f
@@ -45,12 +50,14 @@ class LogNutritionViewModel @Inject constructor(
         setButtonsEnabled()
     }
 
-    fun selectFoodType(item: String) {
-        if (sourceList.contains(item)) {
-            selectedFood = item
-        } else {
-            customFood = item
-        }
+    fun setFoodSelection(selection: String) {
+        _addCustomItem.value = selection == CUSTOM
+        selectedFood = selection
+        setButtonsEnabled()
+    }
+
+    fun setCustomFood(item: String) {
+        customFood = item
         setButtonsEnabled()
     }
 

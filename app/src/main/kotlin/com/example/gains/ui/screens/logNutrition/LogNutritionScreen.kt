@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.nutrition.LogNutritionViewModel
+import com.example.gains.features.nutrition.Util.formatDate
 import com.example.gains.ui.common.DropdownSelector
 import com.example.gains.ui.common.NavBackIcon
 import com.example.gains.ui.common.NavBar
@@ -33,7 +34,7 @@ import com.example.gains.ui.common.SelectionButton
 @Composable
 fun LogNutritionScreen(popBackStack: () -> Unit) {
     NavBar(
-        title = "Add New Protein Log",
+        title = "Log Protein",
         scrollContent = { paddingValues: PaddingValues -> LogNutritionContent(paddingValues, popBackStack) },
         optionalActionComponent = {
             NavBackIcon(popBackStack)
@@ -46,6 +47,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
     val focusManager = LocalFocusManager.current
     val viewModel: LogNutritionViewModel = hiltViewModel()
     val paddingModifier = Modifier.padding(8.dp)
+    val addCustomItem by viewModel.addCustomItem.collectAsState()
     val customButtonEnabled by viewModel.customButtonEnabled.collectAsState()
     val selectionButtonEnabled by viewModel.selectionButtonEnabled.collectAsState()
     val showStoreDialog by viewModel.showDialog.collectAsState()
@@ -59,6 +61,23 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 interactionSource = remember { MutableInteractionSource() } // Disables interaction tracking
             ) { focusManager.clearFocus() } // close keyboards on click
     ) {
+
+        ContentRow(content = {
+            Text("Logging Protein for ${formatDate(viewModel.selectedDate)}")
+        })
+
+        ContentRow(content = {
+            Column(
+                modifier = paddingModifier.weight(2f)
+            ) {
+                DropdownSelector(
+                    label = "Source:",
+                    options = viewModel.sourceList,
+                    setValue = viewModel::setFoodSelection,
+                )
+            }
+        })
+
         ContentRow(content = {
             Column(
                 modifier = paddingModifier.weight(2f)
@@ -77,62 +96,47 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
             }
         })
 
-        ContentRow(content = { Text("Select source form list:") })
+        if (!addCustomItem) {
+            ContentRow(content = {
+                Box(
+                    modifier = Modifier.padding(start = 25.dp, end = 25.dp)
+                ) {
+                    SelectionButton(
+                        label = "Add Selection",
+                        action = { viewModel.addSelectedItem() },
+                        enabled = selectionButtonEnabled
+                    )
+                }
+            })
+        } else {
+            // custom inputs
+            ContentRow(content = {
+                Column(
+                    modifier = paddingModifier.weight(2f)
+                ) {
+                    CustomSourceInput(viewModel, "Source:")
+                }
 
-        ContentRow(content = {
-            Column(
-                modifier = paddingModifier.weight(2f)
-            ) {
-                DropdownSelector(
-                    label = "Source:",
-                    options = viewModel.sourceList,
-                    setValue = viewModel::selectFoodType,
-                )
-            }
-        })
+                Column(
+                    modifier = paddingModifier.weight(2f)
+                ) {
+                    CustomContentInput(viewModel, "Grams / Unit:")
+                }
+            })
 
-        ContentRow(content = {
-            Box(
-                modifier = Modifier.padding(start = 25.dp, end = 25.dp)
-            ) {
-                SelectionButton(
-                    label = "Add Selection",
-                    action = { viewModel.addSelectedItem() },
-                    enabled = selectionButtonEnabled
-                )
-            }
-        })
-
-        ContentRow(content = { Text("OR add custom item:") })
-
-        // custom inputs
-        ContentRow(content = {
-            Column(
-                modifier = paddingModifier.weight(2f)
-            ) {
-                CustomSourceInput(viewModel, "Source:")
-            }
-
-            Column(
-                modifier = paddingModifier.weight(2f)
-            ) {
-                CustomContentInput(viewModel, "Grams / Unit:")
-            }
-        })
-
-        // custom submit
-        ContentRow(content = {
-            // when user adds custom item, prompt to see if they want to add to selection list
-            Box(
-                modifier = Modifier.padding(start = 25.dp, end = 25.dp)
-            ) {
-                SelectionButton(
-                    label = "Add Custom Item",
-                    action = { viewModel.addCustomItem() },
-                    enabled = customButtonEnabled
-                )
-            }
-        })
+            // custom submit
+            ContentRow(content = {
+                Box(
+                    modifier = Modifier.padding(start = 25.dp, end = 25.dp)
+                ) {
+                    SelectionButton(
+                        label = "Add Custom Item",
+                        action = { viewModel.addCustomItem() },
+                        enabled = customButtonEnabled
+                    )
+                }
+            })
+        }
 
         // store custom dialog
         if (showStoreDialog) {
@@ -175,7 +179,7 @@ fun CustomSourceInput(viewModel: LogNutritionViewModel, label: String) {
 
         onValueChange = { newVal ->
             input = newVal
-            viewModel.selectFoodType(newVal)
+            viewModel.setCustomFood(newVal)
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
