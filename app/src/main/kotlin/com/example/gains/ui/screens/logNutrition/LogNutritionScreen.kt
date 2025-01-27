@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -19,10 +20,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.nutrition.LogNutritionViewModel
 import com.example.gains.features.nutrition.Util.formatDate
@@ -51,6 +54,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
     val customButtonEnabled by viewModel.customButtonEnabled.collectAsState()
     val selectionButtonEnabled by viewModel.selectionButtonEnabled.collectAsState()
     val showStoreDialog by viewModel.showDialog.collectAsState()
+    val sourceData by viewModel.sourceData.collectAsState()
 
     Column(
         modifier = Modifier
@@ -68,13 +72,22 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
 
         ContentRow(content = {
             Column(
-                modifier = paddingModifier.weight(2f)
+                modifier = paddingModifier.weight(2f),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 DropdownSelector(
                     label = "Source:",
                     options = viewModel.sourceList,
-                    setValue = viewModel::setFoodSelection,
+                    setValue = viewModel::setSourceSelection,
                 )
+
+                if (sourceData != null) {
+                    Text(
+                        text = "*${sourceData!!.servingSize}${sourceData!!.servingUnit}" +
+                            " contains ${sourceData!!.proteinPerServing}g protein",
+                        fontSize = 12.sp
+                    )
+                }
             }
         })
 
@@ -90,8 +103,8 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
             ) {
                 DropdownSelector(
                     label = "Unit:",
-                    options = viewModel.sizeUnits,
-                    setValue = viewModel::selectUnit,
+                    options = viewModel.sizeUnitSelections,
+                    setValue = viewModel::setLogUnit,
                 )
             }
         })
@@ -103,7 +116,10 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 ) {
                     SelectionButton(
                         label = "Add Selection",
-                        action = { viewModel.addSelectedItem() },
+                        action = {
+                            viewModel.addLogFromSelection()
+                            popBackStack()
+                        },
                         enabled = selectionButtonEnabled
                     )
                 }
@@ -124,6 +140,8 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 }
             })
 
+            StoreCustomOption(viewModel)
+
             // custom submit
             ContentRow(content = {
                 Box(
@@ -131,14 +149,19 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 ) {
                     SelectionButton(
                         label = "Add Custom Item",
-                        action = { viewModel.addCustomItem() },
+                        action = {
+                            viewModel.addCustomItem()
+                            if (!viewModel.storeCustom) {
+                                popBackStack()
+                            }
+                        },
                         enabled = customButtonEnabled
                     )
                 }
             })
         }
 
-        // store custom dialog
+        // store custom dialog - TODO: not working
         if (showStoreDialog) {
             ConfirmDialog(viewModel, popBackStack)
         }
@@ -152,6 +175,7 @@ fun ContentRow(content: @Composable () -> Unit) {
             .fillMaxWidth()
             .padding(8.dp),
         horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         content()
     }
@@ -164,7 +188,7 @@ fun QuantityInput(viewModel: LogNutritionViewModel, label: String) {
         value = input,
         onValueChange = { newVal ->
             input = newVal
-            viewModel.setQuantityInput(newVal)
+            viewModel.setLogQuantity(newVal)
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
@@ -179,7 +203,7 @@ fun CustomSourceInput(viewModel: LogNutritionViewModel, label: String) {
 
         onValueChange = { newVal ->
             input = newVal
-            viewModel.setCustomFood(newVal)
+            viewModel.setCustomFoodName(newVal)
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
@@ -198,4 +222,19 @@ fun CustomContentInput(viewModel: LogNutritionViewModel, label: String) {
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
     )
+}
+
+@Composable
+fun StoreCustomOption(viewModel: LogNutritionViewModel) {
+    var checked by remember { mutableStateOf(true) }
+    ContentRow(content = {
+        Text("Remember Custom Item")
+        Checkbox(
+            checked = checked,
+            onCheckedChange = {
+                checked = it
+                viewModel.storeCustom = it
+            }
+        )
+    })
 }

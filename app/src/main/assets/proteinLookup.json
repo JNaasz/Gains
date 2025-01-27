@@ -1,0 +1,98 @@
+[
+  {
+    "name": "Ground Beef (raw)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 19.1
+  },
+  {
+    "name": "Ground Beef (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 25.6
+  },
+  {
+    "name": "Beef Steak (raw)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 22
+  },
+  {
+    "name": "Beef Steak (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 22
+  },
+  {
+    "name": "Chicken Breast (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 30.5
+  },
+  {
+    "name": "Chicken Thigh (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 24.7
+  },
+  {
+    "name": "Ground Chicken (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 23.5
+  },
+  {
+    "name": "Turkey Light (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 30.5
+  },
+  {
+    "name": "Turkey Dark (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing":  26
+  },
+  {
+    "name": "Ground Turkey (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 27
+  },
+  {
+    "name": "Pork Sausage (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 18.4
+  },
+  {
+    "name": "Shredded Pork (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 17.6
+  },
+  {
+    "name": "Ham (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 16.6
+  },
+  {
+    "name": "Salmon (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 25.8
+  },
+  {
+    "name": "Shrimp (cooked)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 25.9
+  },
+  {
+    "name": "Shrimp (raw)",
+    "servingUnit": "g",
+    "servingSize": 100,
+    "proteinPerServing": 20.5
+  }
+]

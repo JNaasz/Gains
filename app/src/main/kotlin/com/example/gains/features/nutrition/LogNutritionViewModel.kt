@@ -1,11 +1,14 @@
 package com.example.gains.features.nutrition
 
+import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gains.database.NutritionLog
 import com.example.gains.features.nutrition.Util.CUSTOM
-import com.example.gains.features.nutrition.Util.createOptionsList
+import com.example.gains.features.nutrition.Util.calculateProtein
+import com.example.gains.features.nutrition.Util.getMatchedSelectionData
+import com.example.gains.features.nutrition.Util.getSourceList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,8 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LogNutritionViewModel @Inject constructor(
+    application: Application,
     private val nutritionRepository: NutritionRepository,
-) : ViewModel() {
+) : AndroidViewModel(application) {
     private val _customButtonEnabled = MutableStateFlow(false)
     val customButtonEnabled: StateFlow<Boolean> = _customButtonEnabled
 
@@ -26,38 +30,47 @@ class LogNutritionViewModel @Inject constructor(
     private val _showDialog = MutableStateFlow(false)
     val showDialog: StateFlow<Boolean> = _showDialog
 
+    // track whether the user is adding a custom item
     private val _addCustomItem = MutableStateFlow(true)
     val addCustomItem: StateFlow<Boolean> = _addCustomItem
 
-    val sizeUnits = Util.sizeUnits
-    val sourceList: List<String> = createOptionsList()
+    // data for selected stored item
+    private val _sourceData = MutableStateFlow<SourceItem?>(null)
+    var sourceData: StateFlow<SourceItem?> = _sourceData
+
+    val sourceList: List<String> = getSourceList(application)
+    val sizeUnitSelections = Util.sizeUnits
     var selectedDate: LocalDate = LocalDate.now()
-
-    private var quantityInput: Float = 0F
-    private var selectedSizeUnit: String = SizeUnit.G.symbol
-    private var selectedFood: String = ""
-    private var customFood: String = ""
+    var storeCustom = true // true by default
     private var customProteinContent: Float = 0F
-    private var pendingLog: NutritionLog? = null
 
-    fun setQuantityInput(quantity: String) {
-        quantityInput = quantity.toFloatOrNull() ?: 0f
+    // initialize a new log
+    private var newLog: NutritionLog = NutritionLog(
+        date = LocalDate.now(),
+        foodName = "",
+        unit = SizeUnit.SERVING.symbol,
+        size = 0F, // quantity
+        protein = 0F
+    )
+
+    fun setLogQuantity(quantity: String) {
+        newLog.size = quantity.toFloatOrNull() ?: 0f
         setButtonsEnabled()
     }
 
-    fun selectUnit(sizeUnit: String) {
-        selectedSizeUnit = sizeUnit
+    fun setLogUnit(sizeUnit: String) {
+        newLog.unit = sizeUnit
         setButtonsEnabled()
     }
 
-    fun setFoodSelection(selection: String) {
+    fun setSourceSelection(selection: String) {
         _addCustomItem.value = selection == CUSTOM
-        selectedFood = selection
+        _sourceData.value = getMatchedSelectionData(selection)
         setButtonsEnabled()
     }
 
-    fun setCustomFood(item: String) {
-        customFood = item
+    fun setCustomFoodName(item: String) {
+        newLog.foodName = item
         setButtonsEnabled()
     }
 
@@ -66,36 +79,12 @@ class LogNutritionViewModel @Inject constructor(
         setButtonsEnabled()
     }
 
-    fun addSelectedItem() {
-        val newLog = NutritionLog(
-            date = LocalDate.now(),
-            foodName = selectedFood,
-            unit = selectedSizeUnit,
-            size = quantityInput,
-            protein = 0F
-        )
-
-        Log.i("LogNutritionViewModel", newLog.toString())
-
-        // newLog.protein = calcProtein(newLog) call helper function to calc protein based on other vals
-    }
-
     fun addCustomItem() {
-        pendingLog = NutritionLog(
-            date = LocalDate.now(),
-            foodName = customFood,
-            unit = selectedSizeUnit,
-            size = quantityInput,
-            protein = quantityInput * customProteinContent // multiply for total protein
-        )
-
-        onShowDialog()
-    }
-
-    private fun addPendingLog() {
-        pendingLog?.let { log ->
-            addLog(log)
-            pendingLog = null
+        // either prompt store dialog or save item
+        if (storeCustom) {
+            onShowDialog()
+        } else {
+            addCustomLog()
         }
     }
 
@@ -105,23 +94,42 @@ class LogNutritionViewModel @Inject constructor(
 
     fun onDismissDialog() {
         _showDialog.value = false
-        addPendingLog()
+        addCustomLog()
+    }
+
+    private fun setButtonsEnabled() {
+        _customButtonEnabled.value = newLog.size > 0F
+                && customProteinContent > 0F
+                && newLog.foodName != ""
+
+        _selectionButtonEnabled.value = newLog.size > 0F
+                && _sourceData.value != null
+    }
+
+    fun addLogFromSelection() {
+        val source = _sourceData.value ?: return // Exit early if null (shouldn't happen)
+
+        val calculatedProtein = calculateProtein(newLog, source)
+        newLog.foodName = source.name
+        newLog.protein = calculatedProtein
+
+        addNewLog()
+    }
+
+    private fun addCustomLog() {
+        newLog.protein = newLog.size * customProteinContent
+        addNewLog()
+    }
+
+    private fun addNewLog() {
+        viewModelScope.launch {
+            nutritionRepository.addLog(newLog)
+        }
     }
 
     fun storeCustomItem() {
         // TODO: set up DB to store selections and add them
         Log.i("LogNutritionViewModel", "storeCustomItem")
         onDismissDialog()
-    }
-
-    private fun setButtonsEnabled() {
-        _customButtonEnabled.value = quantityInput != 0F && customProteinContent != 0F && customFood != ""
-        _selectionButtonEnabled.value = quantityInput != 0F && selectedFood != ""
-    }
-
-    private fun addLog(newLog: NutritionLog) {
-        viewModelScope.launch {
-            nutritionRepository.addLog(newLog)
-        }
     }
 }
