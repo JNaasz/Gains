@@ -1,17 +1,21 @@
 package com.example.gains.features.nutrition
 
 import android.app.Application
-import android.util.Log
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gains.database.NutritionLog
+import com.example.gains.database.ProteinSource
 import com.example.gains.features.nutrition.Util.CUSTOM
 import com.example.gains.features.nutrition.Util.calculateProtein
 import com.example.gains.features.nutrition.Util.getMatchedSelectionData
 import com.example.gains.features.nutrition.Util.getSourceList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -21,6 +25,14 @@ class LogNutritionViewModel @Inject constructor(
     application: Application,
     private val nutritionRepository: NutritionRepository,
 ) : AndroidViewModel(application) {
+    // TODO: attempt to move custom source list?
+    private val customSourceList: StateFlow<List<ProteinSource>> =
+        nutritionRepository.getProteinSources()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _sourceList = MutableStateFlow<List<String>>(emptyList())
+    val sourceList: StateFlow<List<String>> = _sourceList
+
     private val _customButtonEnabled = MutableStateFlow(false)
     val customButtonEnabled: StateFlow<Boolean> = _customButtonEnabled
 
@@ -35,10 +47,9 @@ class LogNutritionViewModel @Inject constructor(
     val addCustomItem: StateFlow<Boolean> = _addCustomItem
 
     // data for selected stored item
-    private val _sourceData = MutableStateFlow<SourceItem?>(null)
-    var sourceData: StateFlow<SourceItem?> = _sourceData
+    private val _sourceData = MutableStateFlow<ProteinSource?>(null)
+    var sourceData: StateFlow<ProteinSource?> = _sourceData
 
-    val sourceList: List<String> = getSourceList(application)
     val sizeUnitSelections = Util.sizeUnits
     var selectedDate: LocalDate = LocalDate.now()
     var storeCustom = true // true by default
@@ -52,6 +63,24 @@ class LogNutritionViewModel @Inject constructor(
         size = 0F, // quantity
         protein = 0F
     )
+
+    val newSource = ProteinSource(
+        name = newLog.foodName,
+        servingUnit = newLog.unit,
+        servingSize = newLog.size,
+        proteinPerServing = customProteinContent
+    )
+
+    fun fetchSourceList(context: Context) {
+        // TODO: this part seems sort of sloppy, may want to handle this in Nutrition Repository
+        viewModelScope.launch {
+            // Wait until customSourceList has data
+            val customSources = customSourceList.first { it.isNotEmpty() }
+            val defaultSourceSelections = nutritionRepository.getDefaultSelections(context)
+            val sourceList = getSourceList(customSources, defaultSourceSelections)
+            _sourceList.value = sourceList
+        }
+    }
 
     fun setLogQuantity(quantity: String) {
         newLog.size = quantity.toFloatOrNull() ?: 0f
@@ -89,6 +118,17 @@ class LogNutritionViewModel @Inject constructor(
     }
 
     private fun onShowDialog() {
+        val size = if (newLog.unit == SizeUnit.SERVING.symbol) {
+            1F
+        } else {
+            newLog.size
+        }
+        // update newSource values
+        newSource.name = newLog.foodName
+        newSource.servingUnit = newLog.unit
+        newSource.proteinPerServing = customProteinContent
+        newSource.servingSize = size
+
         _showDialog.value = true
     }
 
@@ -128,8 +168,10 @@ class LogNutritionViewModel @Inject constructor(
     }
 
     fun storeCustomItem() {
-        // TODO: set up DB to store selections and add them
-        Log.i("LogNutritionViewModel", "storeCustomItem")
+        viewModelScope.launch {
+            nutritionRepository.storeProteinSource(newSource)
+        }
+
         onDismissDialog()
     }
 }

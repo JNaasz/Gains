@@ -1,15 +1,12 @@
 package com.example.gains.features.nutrition
 
-import android.content.Context
-import android.util.Log
 import com.example.gains.database.NutritionLog
-import kotlinx.serialization.json.Json
-import java.io.BufferedReader
+import com.example.gains.database.ProteinSource
 import java.time.LocalDate
 
 object Util {
     const val CUSTOM = "Custom"
-    private val gramsPerOz = 28.3495
+    private const val G_PER_OZ = 28.3495
 
     val sizeUnits: List<String> = listOf(
         SizeUnit.SERVING.symbol,
@@ -17,36 +14,22 @@ object Util {
         SizeUnit.OZ.symbol,
     )
 
-    private var defaultSelections: List<SourceItem>? = null
-    private var selections: List<SourceItem>? = null
+    private var selections: List<ProteinSource>? = null
 
-    private fun setDefaultSelections(context: Context) {
-        val json = context.assets.open("proteinLookup.json").bufferedReader().use(BufferedReader::readText)
-        defaultSelections = Json.decodeFromString(json)
-        Log.d("TAG", "setDefaultSelections: ${defaultSelections.toString()}")
+    fun getSourceList(
+        customSources: List<ProteinSource>,
+        defaultSelections: List<ProteinSource>?
+    ): List<String> {
+        // Merge custom and default sources into one list
+        val allSources = customSources + (defaultSelections ?: emptyList())
+
+        selections = allSources
+
+        // Add "Custom" at the beginning and map source names
+        return listOf(CUSTOM) + allSources.map { it.name }
     }
 
-    private fun getSourceDataItems(context: Context): List<SourceItem>? {
-        if (defaultSelections.isNullOrEmpty()) {
-            setDefaultSelections(context)
-        }
-
-        // pull the user input selections from DB
-        // add those + default selections to sourceSelections
-        selections = defaultSelections
-        return defaultSelections
-    }
-
-    fun getSourceList(context: Context): List<String> {
-        val list = mutableListOf(CUSTOM)
-        getSourceDataItems(context)?.forEach {
-            list.add(it.name)
-        }
-
-        return list.toList()
-    }
-
-    fun getMatchedSelectionData(selection: String): SourceItem? {
+    fun getMatchedSelectionData(selection: String): ProteinSource? {
         return if (selection == CUSTOM) {
             null
         } else {
@@ -57,15 +40,15 @@ object Util {
     }
 
     private fun gramsToOz(grams: Float): Float {
-        return (grams / gramsPerOz).toFloat()
+        return (grams / G_PER_OZ).toFloat()
     }
 
     private fun ozToGrams(grams: Float): Float {
-        return (grams * gramsPerOz).toFloat()
+        return (grams * G_PER_OZ).toFloat()
     }
 
-    fun calculateProtein(log: NutritionLog, source: SourceItem): Float {
-        if (log.unit == SizeUnit.SERVING.symbol) return source.proteinPerServing
+    fun calculateProtein(log: NutritionLog, source: ProteinSource): Float {
+        if (log.unit == SizeUnit.SERVING.symbol) return source.proteinPerServing * log.size
 
         val size = when (source.servingUnit) {
             log.unit -> log.size

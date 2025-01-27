@@ -15,6 +15,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -38,7 +40,12 @@ import com.example.gains.ui.common.SelectionButton
 fun LogNutritionScreen(popBackStack: () -> Unit) {
     NavBar(
         title = "Log Protein",
-        scrollContent = { paddingValues: PaddingValues -> LogNutritionContent(paddingValues, popBackStack) },
+        scrollContent = { paddingValues: PaddingValues ->
+            LogNutritionContent(
+                paddingValues,
+                popBackStack
+            )
+        },
         optionalActionComponent = {
             NavBackIcon(popBackStack)
         }
@@ -55,6 +62,8 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
     val selectionButtonEnabled by viewModel.selectionButtonEnabled.collectAsState()
     val showStoreDialog by viewModel.showDialog.collectAsState()
     val sourceData by viewModel.sourceData.collectAsState()
+    val sourceList by viewModel.sourceList.collectAsState()
+    val localContext = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -75,16 +84,24 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 modifier = paddingModifier.weight(2f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                DropdownSelector(
-                    label = "Source:",
-                    options = viewModel.sourceList,
-                    setValue = viewModel::setSourceSelection,
-                )
+                LaunchedEffect(Unit) { // Ensures fetchSourceList is called once when the composable is displayed
+                    viewModel.fetchSourceList(localContext)
+                }
+
+                if (sourceList.isNotEmpty()) {
+                    DropdownSelector(
+                        label = "Source:",
+                        options = sourceList,
+                        setValue = viewModel::setSourceSelection,
+                    )
+                } else {
+                    Text("Loading Sources..")
+                }
 
                 if (sourceData != null) {
                     Text(
                         text = "*${sourceData!!.servingSize}${sourceData!!.servingUnit}" +
-                            " contains ${sourceData!!.proteinPerServing}g protein",
+                                " contains ${sourceData!!.proteinPerServing}g protein",
                         fontSize = 12.sp
                     )
                 }
@@ -98,6 +115,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 QuantityInput(viewModel, "Quantity:")
             }
 
+            // TODO: If the selected source has a servingUnit of Serving, only allow Serving selection
             Column(
                 modifier = paddingModifier.weight(2f)
             ) {

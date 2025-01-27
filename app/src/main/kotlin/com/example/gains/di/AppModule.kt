@@ -3,7 +3,9 @@ package com.example.gains.di
 import android.content.Context
 import androidx.room.Room
 import com.example.gains.database.GainsRoomDB
+import com.example.gains.database.Migrations
 import com.example.gains.database.NutritionDao
+import com.example.gains.database.ProteinSourcesDao
 import com.example.gains.features.nutrition.NutritionRepository
 import com.example.gains.features.nutrition.NutritionRepositoryImpl
 import dagger.Module
@@ -24,7 +26,9 @@ object AppModule {
             context,
             GainsRoomDB::class.java,
             "gains_database"
-        ).build()
+        )
+            .addMigrations(Migrations.MIGRATION_1_2)
+            .build()
     }
 
     @Provides
@@ -33,7 +37,15 @@ object AppModule {
     }
 
     @Provides
-    fun provideNutritionRepository(nutritionDao: NutritionDao): NutritionRepository {
-        return NutritionRepositoryImpl(nutritionDao)
+    fun provideProteinSourcesDao(database: GainsRoomDB): ProteinSourcesDao {
+        return database.proteinSourcesDao()
+    }
+
+    @Provides
+    fun provideNutritionRepository(
+        nutritionDao: NutritionDao,
+        proteinSourcesDao: ProteinSourcesDao
+    ): NutritionRepository {
+        return NutritionRepositoryImpl(nutritionDao, proteinSourcesDao)
     }
 }

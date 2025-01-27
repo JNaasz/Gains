@@ -45,12 +45,19 @@ fun ConfirmDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "Would you like to save this custom item to food selections?",
+                    text = "Item will be saved as: ",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center),
+                        .wrapContentSize(Alignment.Center)
+                        .padding(bottom = 8.dp),
                     textAlign = TextAlign.Center,
                 )
+
+                // TODO: format base serving text and style
+                Text("Name: ${viewModel.newSource.name}")
+                Text("Serving: ${viewModel.newSource.servingSize}${viewModel.newSource.servingUnit}")
+                Text("Protein Content: ${viewModel.newSource.proteinPerServing}g")
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -63,7 +70,7 @@ fun ConfirmDialog(
                         },
                         modifier = Modifier.padding(8.dp),
                     ) {
-                        Text("No")
+                        Text("Cancel")
                     }
                     TextButton(
                         onClick = {
@@ -72,7 +79,7 @@ fun ConfirmDialog(
                         },
                         modifier = Modifier.padding(8.dp),
                     ) {
-                        Text("Yes")
+                        Text("OK")
                     }
                 }
             }
