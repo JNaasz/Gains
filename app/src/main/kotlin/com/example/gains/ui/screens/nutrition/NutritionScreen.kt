@@ -1,4 +1,4 @@
-package com.example.gains.ui.screens
+package com.example.gains.ui.screens.nutrition
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,23 +8,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.database.NutritionLog
 import com.example.gains.features.nutrition.NutritionViewModel
+import com.example.gains.features.nutrition.SizeUnit
 import com.example.gains.ui.common.NavBackIcon
 import com.example.gains.ui.common.NavBar
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-
-import com.example.gains.features.nutrition.SizeUnit
 import com.example.gains.ui.common.SelectionButton
 
 @Composable
@@ -36,7 +35,7 @@ fun NutritionScreen(
     val currentProteinTotal by viewModel.currentProteinTotal.collectAsState()
 
     NavBar(
-        title = "Logged Today: ${currentProteinTotal.toInt()}g",
+        title = "Total Logged: ${currentProteinTotal.toInt()}g",
         scrollContent = { paddingValues: PaddingValues ->
             NutritionContent(
                 paddingValues,
@@ -57,12 +56,12 @@ fun NutritionContent(
     viewModel: NutritionViewModel
 ) {
     val logs by viewModel.nutritionLogs.collectAsState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
     ) {
+        DateNav(viewModel)
         // LazyColumn for displaying the logs
         LazyColumn(
             modifier = Modifier

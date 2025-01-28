@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.gains.ui.screens.HomeScreen
 import com.example.gains.ui.screens.logNutrition.LogNutritionScreen
-import com.example.gains.ui.screens.NutritionScreen
+import com.example.gains.ui.screens.nutrition.NutritionScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {

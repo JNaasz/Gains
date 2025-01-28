@@ -1,6 +1,5 @@
 package com.example.gains.ui.common
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,26 +17,22 @@ fun NavBar(
     scrollContent: @Composable (PaddingValues) -> Unit,
     optionalActionComponent: (@Composable () -> Unit)? = null
 ) {
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(
-                        title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    optionalActionComponent?.invoke()
-                },
-            )
-        }
-    ) { paddingValues ->
+    Scaffold(topBar = {
+        CenterAlignedTopAppBar(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.primary,
+            ),
+            title = {
+                Text(
+                    title, maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
+            },
+            navigationIcon = {
+                optionalActionComponent?.invoke()
+            },
+        )
+    }) { paddingValues ->
         scrollContent(paddingValues)
     }
 }
