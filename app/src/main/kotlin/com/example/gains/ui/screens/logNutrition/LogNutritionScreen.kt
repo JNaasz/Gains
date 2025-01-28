@@ -112,7 +112,11 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
             Column(
                 modifier = paddingModifier.weight(2f)
             ) {
-                QuantityInput(viewModel, "Quantity:")
+                QuantityInput(
+                    label = "Quantity:",
+                    setValue = { newValue ->
+                        viewModel.setLogQuantity(newValue)
+                    })
             }
 
             // TODO: If the selected source has a servingUnit of Serving, only allow Serving selection
@@ -154,7 +158,11 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 Column(
                     modifier = paddingModifier.weight(2f)
                 ) {
-                    CustomContentInput(viewModel, "Grams / Unit:")
+                    QuantityInput(
+                        label = "Grams / Unit:",
+                        setValue = { newValue ->
+                            viewModel.setCustomProteinContent(newValue)
+                        })
                 }
             })
 
@@ -200,13 +208,13 @@ fun ContentRow(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun QuantityInput(viewModel: LogNutritionViewModel, label: String) {
+fun QuantityInput(label: String, setValue: (String) -> Unit) {
     var input by remember { mutableStateOf("0") }
     TextField(
         value = input,
         onValueChange = { newVal ->
-            input = newVal
-            viewModel.setLogQuantity(newVal)
+            input = newVal.trimStart { it == '0' }
+            setValue(newVal)
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
@@ -225,20 +233,6 @@ fun CustomSourceInput(viewModel: LogNutritionViewModel, label: String) {
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
-    )
-}
-
-@Composable
-fun CustomContentInput(viewModel: LogNutritionViewModel, label: String) {
-    var input by remember { mutableStateOf("0") }
-    TextField(
-        value = input,
-        onValueChange = { newVal ->
-            input = newVal
-            viewModel.setCustomProteinContent(newVal)
-        },
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
     )
 }
 

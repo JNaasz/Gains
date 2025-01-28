@@ -3,6 +3,9 @@ package com.example.gains.ui.screens
 import android.content.ContentValues
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
@@ -13,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -23,8 +27,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.home.HomeViewModel
 import com.example.gains.ui.theme.GainsTheme
 import com.example.gains.ui.theme.high
+import com.example.gains.ui.theme.highPressed
 import com.example.gains.ui.theme.low
+import com.example.gains.ui.theme.lowPressed
 import com.example.gains.ui.theme.medium
+import com.example.gains.ui.theme.mediumPressed
 import com.example.gains.ui.theme.percentText
 import java.text.NumberFormat
 
@@ -73,13 +80,19 @@ fun getActivitiesText(): Array<String> {
 
 @Composable
 fun ProteinGoal(current: Int, goal: Int, navigateToNutrition: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
     val percentComplete = (current / goal.toFloat()) * 100
 
     val color = if (percentComplete >= 100F) {
-        high
+        if (isPressed) highPressed
+        else high
     } else if (percentComplete > 50F) {
-        medium
-    } else low
+        if (isPressed) mediumPressed
+        else medium
+    } else if (isPressed) lowPressed
+        else low
 
     Box(
         contentAlignment = Alignment.Center,
@@ -87,6 +100,11 @@ fun ProteinGoal(current: Int, goal: Int, navigateToNutrition: () -> Unit) {
             .requiredSize(170.dp) // Enforces the size to not stretch
             .padding(16.dp)
             .background(color = color, shape = CircleShape)
+            .clickable(
+                onClick = {},
+                interactionSource = interactionSource,
+                indication = null // ripple()
+            ),
     ) {
         TextButton(
             onClick = {

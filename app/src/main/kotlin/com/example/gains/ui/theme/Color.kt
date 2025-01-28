@@ -15,6 +15,9 @@ val Background40 = Color(0xFFF5DDDD)
 
 // progress colors
 val low = Color(0xFFB00B10)
+val lowPressed = Color(0x80B00B10)
 val medium = Color(0xFFE6E20E)
+val mediumPressed = Color(0x80E6E20E)
 val high = Color(0xFF117D2E)
+val highPressed = Color(0x80117D2E)
 val percentText = Color(0xFFFFFFFF)
