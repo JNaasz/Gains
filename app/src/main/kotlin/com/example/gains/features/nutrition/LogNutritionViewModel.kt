@@ -157,7 +157,13 @@ class LogNutritionViewModel @Inject constructor(
     }
 
     private fun addCustomLog() {
-        newLog.protein = newLog.size * customProteinContent
+        newLog.protein = if (newLog.unit == SizeUnit.SERVING.symbol) {
+            // multiply by number of servings
+            newLog.size * customProteinContent
+        } else {
+            customProteinContent
+        }
+
         addNewLog()
     }
 

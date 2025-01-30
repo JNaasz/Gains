@@ -159,7 +159,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                     modifier = paddingModifier.weight(2f)
                 ) {
                     QuantityInput(
-                        label = "Grams / Unit:",
+                        label = "Grams Protein / Serving:",
                         setValue = { newValue ->
                             viewModel.setCustomProteinContent(newValue)
                         })

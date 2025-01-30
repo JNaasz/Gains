@@ -56,7 +56,7 @@ object Util {
             else -> ozToGrams(log.size)
         }
 
-        return (size * source.proteinPerServing) / source.servingSize
+        return (Math.round((size * source.proteinPerServing) / source.servingSize * 10) / 10.0).toFloat()
     }
 
     fun formatDate(date: LocalDate): String {
