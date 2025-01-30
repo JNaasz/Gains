@@ -28,7 +28,7 @@ class NutritionRepositoryImpl(
     private var defaultProteinSelections: List<ProteinSource>? = null
 
     override fun getLogs(date: LocalDate): Flow<List<NutritionLog>> =
-        nutritionDao.getLogs(LocalDate.now())
+        nutritionDao.getLogs(date)
 
     override suspend fun addLog(newLog: NutritionLog) {
         nutritionDao.addLog(newLog)

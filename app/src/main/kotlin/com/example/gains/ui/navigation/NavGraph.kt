@@ -35,6 +35,9 @@ private fun addHomeScreen(
             navigateToNutrition = {
                 navController.navigate(NavRoute.Nutrition.path)
             },
+            navigateToLogNutrition = {
+                navController.navigate(NavRoute.LogNutrition.path)
+            }
         )
     }
 }

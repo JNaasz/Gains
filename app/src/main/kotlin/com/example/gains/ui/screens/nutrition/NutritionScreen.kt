@@ -63,42 +63,44 @@ fun NutritionContent(
     ) {
         DateNav(viewModel)
         // LazyColumn for displaying the logs
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f) // Ensures LazyColumn shares available space
-                .fillMaxWidth()
-        ) {
-            items(logs) { log ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ProteinLog(
-                        log,
-                        modifier = Modifier.weight(2f)
-                    )
-                    Button(
-                        onClick = { viewModel.deleteLog(log) },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Delete")
-                    }
-                }
-                HorizontalDivider()
-            }
-        }
 
-        // Empty state message if no logs are present
-        if (logs.isEmpty()) {
+        if (logs.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f) // Ensures LazyColumn shares available space
+                    .fillMaxWidth()
+            ) {
+                items(logs) { log ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ProteinLog(
+                            log,
+                            modifier = Modifier.weight(2f)
+                        )
+                        Button(
+                            onClick = { viewModel.deleteLog(log) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Delete")
+                        }
+                    }
+                    HorizontalDivider()
+                }
+            }
+        } else {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.Center
+                    .padding(16.dp)
+                    .weight(1f),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("No items logged yet today.")
+                Text("No items logged.")
             }
         }
 

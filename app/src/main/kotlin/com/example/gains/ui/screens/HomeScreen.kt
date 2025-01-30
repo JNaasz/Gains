@@ -12,7 +12,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,6 +37,7 @@ import java.text.NumberFormat
 @Composable
 fun HomeScreen(
     navigateToNutrition: () -> Unit,
+    navigateToLogNutrition: () -> Unit,
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
     val proteinTotal by viewModel.proteinTotal.collectAsState()
@@ -49,7 +49,7 @@ fun HomeScreen(
     ) {
         ProteinGoal(proteinTotal.toInt(), 130, navigateToNutrition)
         TextColumn()
-        MainButton("Log Protein") { navigateToNutrition() }
+        MainButton("Log Protein") { navigateToLogNutrition() }
         MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
         MainButton("Workouts") { buttonClick("Clicked Workouts") }
     }
@@ -101,23 +101,17 @@ fun ProteinGoal(current: Int, goal: Int, navigateToNutrition: () -> Unit) {
             .padding(16.dp)
             .background(color = color, shape = CircleShape)
             .clickable(
-                onClick = {},
+                onClick = { navigateToNutrition() },
                 interactionSource = interactionSource,
                 indication = null // ripple()
             ),
     ) {
-        TextButton(
-            onClick = {
-                navigateToNutrition()
-            },
-        ) {
-            Text(
-                text = "$current / $goal",
-                color = percentText,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Text(
+            text = "$current / $goal",
+            color = percentText,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
