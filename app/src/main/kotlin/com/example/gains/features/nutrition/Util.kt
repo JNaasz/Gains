@@ -2,7 +2,9 @@ package com.example.gains.features.nutrition
 
 import com.example.gains.database.NutritionLog
 import com.example.gains.database.ProteinSource
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneOffset
 
 object Util {
     const val CUSTOM = "Custom"
@@ -68,5 +70,15 @@ object Util {
         val day = date.dayOfMonth
         val year = date.year
         return "$month/$day/$year"
+    }
+
+    fun localDateToEpochMilli(date: LocalDate): Long {
+        return date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    }
+
+    fun epochMilliToLocalDate(epoch: Long): LocalDate {
+        return Instant.ofEpochMilli(epoch)
+            .atZone(ZoneOffset.UTC) // Adjusts to system time zone
+            .toLocalDate()
     }
 }

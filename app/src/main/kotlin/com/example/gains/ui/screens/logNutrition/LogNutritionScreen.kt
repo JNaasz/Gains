@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -31,6 +35,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.nutrition.LogNutritionViewModel
 import com.example.gains.features.nutrition.Util.formatDate
+import com.example.gains.features.nutrition.Util.localDateToEpochMilli
+import com.example.gains.ui.common.DatePickerModal
 import com.example.gains.ui.common.DropdownSelector
 import com.example.gains.ui.common.NavBackIcon
 import com.example.gains.ui.common.NavBar
@@ -38,45 +44,49 @@ import com.example.gains.ui.common.SelectionButton
 
 @Composable
 fun LogNutritionScreen(popBackStack: () -> Unit) {
-    NavBar(
-        title = "Log Protein",
-        scrollContent = { paddingValues: PaddingValues ->
-            LogNutritionContent(
-                paddingValues,
-                popBackStack
-            )
-        },
-        optionalActionComponent = {
-            NavBackIcon(popBackStack)
-        }
-    )
+    NavBar(title = "Log Protein", scrollContent = { paddingValues: PaddingValues ->
+        LogNutritionContent(
+            paddingValues, popBackStack
+        )
+    }, optionalActionComponent = {
+        NavBackIcon(popBackStack)
+    })
 }
 
 @Composable
 fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) {
     val focusManager = LocalFocusManager.current
     val viewModel: LogNutritionViewModel = hiltViewModel()
+    val localContext = LocalContext.current
     val paddingModifier = Modifier.padding(8.dp)
+
     val addCustomItem by viewModel.addCustomItem.collectAsState()
     val customButtonEnabled by viewModel.customButtonEnabled.collectAsState()
     val selectionButtonEnabled by viewModel.selectionButtonEnabled.collectAsState()
     val showStoreDialog by viewModel.showDialog.collectAsState()
     val sourceData by viewModel.sourceData.collectAsState()
     val sourceList by viewModel.sourceList.collectAsState()
-    val localContext = LocalContext.current
+    val selectedDate by viewModel.selectedDate.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize()
-            .clickable(
-                indication = null, // Removes the ripple effect
-                interactionSource = remember { MutableInteractionSource() } // Disables interaction tracking
-            ) { focusManager.clearFocus() } // close keyboards on click
+    var showDateDialog by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier
+        .padding(paddingValues)
+        .fillMaxSize()
+        .clickable(indication = null, // Removes the ripple effect
+            interactionSource = remember { MutableInteractionSource() } // Disables interaction tracking
+        ) { focusManager.clearFocus() } // close keyboards on click
     ) {
 
         ContentRow(content = {
-            Text("Logging Protein for ${formatDate(viewModel.selectedDate)}")
+            Text("Logging Protein for ${formatDate(selectedDate)}")
+            IconButton(onClick = {
+                showDateDialog = true
+            }) {
+                Icon(
+                    imageVector = Icons.Default.DateRange, contentDescription = "Select Date"
+                )
+            }
         })
 
         ContentRow(content = {
@@ -100,8 +110,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
 
                 if (sourceData != null) {
                     Text(
-                        text = "*${sourceData!!.servingSize}${sourceData!!.servingUnit}" +
-                                " contains ${sourceData!!.proteinPerServing}g protein",
+                        text = "*${sourceData!!.servingSize}${sourceData!!.servingUnit}" + " contains ${sourceData!!.proteinPerServing}g protein",
                         fontSize = 12.sp
                     )
                 }
@@ -112,11 +121,9 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
             Column(
                 modifier = paddingModifier.weight(2f)
             ) {
-                QuantityInput(
-                    label = "Quantity:",
-                    setValue = { newValue ->
-                        viewModel.setLogQuantity(newValue)
-                    })
+                QuantityInput(label = "Quantity:", setValue = { newValue ->
+                    viewModel.setLogQuantity(newValue)
+                })
             }
 
             // TODO: If the selected source has a servingUnit of Serving, only allow Serving selection
@@ -137,12 +144,10 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                     modifier = Modifier.padding(start = 25.dp, end = 25.dp)
                 ) {
                     SelectionButton(
-                        label = "Add Selection",
-                        action = {
+                        label = "Add Selection", action = {
                             viewModel.addLogFromSelection()
                             popBackStack()
-                        },
-                        enabled = selectionButtonEnabled
+                        }, enabled = selectionButtonEnabled
                     )
                 }
             })
@@ -158,11 +163,9 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 Column(
                     modifier = paddingModifier.weight(2f)
                 ) {
-                    QuantityInput(
-                        label = "Grams Protein / Serving:",
-                        setValue = { newValue ->
-                            viewModel.setCustomProteinContent(newValue)
-                        })
+                    QuantityInput(label = "Grams Protein / Serving:", setValue = { newValue ->
+                        viewModel.setCustomProteinContent(newValue)
+                    })
                 }
             })
 
@@ -174,14 +177,12 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                     modifier = Modifier.padding(start = 25.dp, end = 25.dp)
                 ) {
                     SelectionButton(
-                        label = "Add Custom Item",
-                        action = {
+                        label = "Add Custom Item", action = {
                             viewModel.addCustomItem()
                             if (!viewModel.storeCustom) {
                                 popBackStack()
                             }
-                        },
-                        enabled = customButtonEnabled
+                        }, enabled = customButtonEnabled
                     )
                 }
             })
@@ -190,6 +191,14 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
         // store custom dialog - TODO: not working
         if (showStoreDialog) {
             ConfirmDialog(viewModel, popBackStack)
+        }
+
+        if (showDateDialog) {
+            DatePickerModal(currentDate = localDateToEpochMilli(selectedDate),
+                onDateSelected = { selected ->
+                    viewModel.dateSelected(selected)
+                },
+                onDismiss = { showDateDialog = false })
         }
     }
 }
@@ -241,12 +250,9 @@ fun StoreCustomOption(viewModel: LogNutritionViewModel) {
     var checked by remember { mutableStateOf(true) }
     ContentRow(content = {
         Text("Remember Custom Item")
-        Checkbox(
-            checked = checked,
-            onCheckedChange = {
-                checked = it
-                viewModel.storeCustom = it
-            }
-        )
+        Checkbox(checked = checked, onCheckedChange = {
+            checked = it
+            viewModel.storeCustom = it
+        })
     })
 }

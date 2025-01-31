@@ -2,12 +2,14 @@ package com.example.gains.features.nutrition
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gains.database.NutritionLog
 import com.example.gains.database.ProteinSource
 import com.example.gains.features.nutrition.Util.CUSTOM
 import com.example.gains.features.nutrition.Util.calculateProtein
+import com.example.gains.features.nutrition.Util.epochMilliToLocalDate
 import com.example.gains.features.nutrition.Util.getMatchedSelectionData
 import com.example.gains.features.nutrition.Util.getSourceList
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,14 +52,16 @@ class LogNutritionViewModel @Inject constructor(
     private val _sourceData = MutableStateFlow<ProteinSource?>(null)
     var sourceData: StateFlow<ProteinSource?> = _sourceData
 
+    private val _selectedDate = MutableStateFlow<LocalDate>(LocalDate.now())
+    var selectedDate: StateFlow<LocalDate> = _selectedDate
+
     val sizeUnitSelections = Util.sizeUnits
-    var selectedDate: LocalDate = LocalDate.now()
     var storeCustom = true // true by default
     private var customProteinContent: Float = 0F
 
     // initialize a new log
     private var newLog: NutritionLog = NutritionLog(
-        date = LocalDate.now(),
+        date = selectedDate.value,
         foodName = "",
         unit = SizeUnit.SERVING.symbol,
         size = 0F, // quantity
@@ -152,11 +156,13 @@ class LogNutritionViewModel @Inject constructor(
         val calculatedProtein = calculateProtein(newLog, source)
         newLog.foodName = source.name
         newLog.protein = calculatedProtein
+        newLog.date = selectedDate.value
 
         addNewLog()
     }
 
     private fun addCustomLog() {
+        newLog.date = selectedDate.value
         newLog.protein = if (newLog.unit == SizeUnit.SERVING.symbol) {
             // multiply by number of servings
             newLog.size * customProteinContent
@@ -179,5 +185,15 @@ class LogNutritionViewModel @Inject constructor(
         }
 
         onDismissDialog()
+    }
+
+    fun dateSelected(selectedDateMillis: Long?) {
+        if (selectedDateMillis == null) {
+            Log.d("TAG", "dateSelected: No date selected")
+            return
+        }
+
+        val newDate = epochMilliToLocalDate(selectedDateMillis)
+        _selectedDate.value = newDate
     }
 }
