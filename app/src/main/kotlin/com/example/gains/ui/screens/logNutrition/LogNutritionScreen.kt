@@ -68,6 +68,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
     val sourceList by viewModel.sourceList.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
 
+    var storeCustom by remember { mutableStateOf(true) }
     var showDateDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier
@@ -169,7 +170,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 }
             })
 
-            StoreCustomOption(viewModel)
+            StoreCustomOption(setStoreCustom = { storeCustom = it })
 
             // custom submit
             ContentRow(content = {
@@ -178,8 +179,8 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 ) {
                     SelectionButton(
                         label = "Add Custom Item", action = {
-                            viewModel.addCustomItem()
-                            if (!viewModel.storeCustom) {
+                            viewModel.addCustomItem(storeCustom)
+                            if (storeCustom) {
                                 popBackStack()
                             }
                         }, enabled = customButtonEnabled
@@ -246,13 +247,13 @@ fun CustomSourceInput(viewModel: LogNutritionViewModel, label: String) {
 }
 
 @Composable
-fun StoreCustomOption(viewModel: LogNutritionViewModel) {
+fun StoreCustomOption(setStoreCustom: (Boolean) -> Unit) {
     var checked by remember { mutableStateOf(true) }
     ContentRow(content = {
         Text("Remember Custom Item")
         Checkbox(checked = checked, onCheckedChange = {
             checked = it
-            viewModel.storeCustom = it
+            setStoreCustom(it)
         })
     })
 }
