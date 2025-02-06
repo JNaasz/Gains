@@ -58,7 +58,12 @@ class LogNutritionViewModel @Inject constructor(
         _sourceData.value = getMatchedSelectionData(selection)
     }
 
-    fun buildCustomSource(unitInput: String, quantityInput: String, sourceInput: String, proteinInput: String) {
+    fun buildCustomSource(
+        unitInput: String,
+        quantityInput: String,
+        sourceInput: String,
+        proteinInput: String
+    ) {
         val size = if (unitInput == SizeUnit.SERVING.symbol) {
             1F
         } else {
@@ -91,7 +96,13 @@ class LogNutritionViewModel @Inject constructor(
 
         addNewLog(newLog)
     }
-    fun addCustomLog(sourceInput: String, unitInput: String, quantityInput: String, proteinInput: String) {
+
+    fun addCustomLog(
+        sourceInput: String,
+        unitInput: String,
+        quantityInput: String,
+        proteinInput: String
+    ) {
         val newLog = NutritionLog(
             date = selectedDate.value,
             foodName = sourceInput,
