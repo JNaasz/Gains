@@ -10,17 +10,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,23 +33,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.nutrition.LogNutritionViewModel
+import com.example.gains.features.nutrition.Util.CUSTOM
 import com.example.gains.features.nutrition.Util.formatDate
 import com.example.gains.features.nutrition.Util.localDateToEpochMilli
 import com.example.gains.ui.common.DatePickerModal
 import com.example.gains.ui.common.DropdownSelector
+import com.example.gains.ui.common.InputField
 import com.example.gains.ui.common.NavBackIcon
 import com.example.gains.ui.common.NavBar
 import com.example.gains.ui.common.SelectionButton
 
 @Composable
 fun LogNutritionScreen(popBackStack: () -> Unit) {
-    NavBar(title = "Log Protein", scrollContent = { paddingValues: PaddingValues ->
-        LogNutritionContent(
-            paddingValues, popBackStack
-        )
-    }, optionalActionComponent = {
-        NavBackIcon(popBackStack)
-    })
+    NavBar(
+        title = "Log Protein",
+        scrollContent = { paddingValues ->
+            LogNutritionContent(paddingValues, popBackStack)
+        },
+        optionalActionComponent = { NavBackIcon(popBackStack) }
+    )
 }
 
 @Composable
@@ -58,51 +59,66 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
     val focusManager = LocalFocusManager.current
     val viewModel: LogNutritionViewModel = hiltViewModel()
     val localContext = LocalContext.current
+
+
     val paddingModifier = Modifier.padding(8.dp)
 
-    val addCustomItem by viewModel.addCustomItem.collectAsState()
-    val customButtonEnabled by viewModel.customButtonEnabled.collectAsState()
-    val selectionButtonEnabled by viewModel.selectionButtonEnabled.collectAsState()
-    val showStoreDialog by viewModel.showDialog.collectAsState()
     val sourceData by viewModel.sourceData.collectAsState()
     val sourceList by viewModel.sourceList.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val newCustomSource by viewModel.newSource.collectAsState()
 
-    var showDateDialog by remember { mutableStateOf(false) }
+    var state by remember { mutableStateOf(LogNutritionState()) }
 
-    Column(modifier = Modifier
-        .padding(paddingValues)
-        .fillMaxSize()
-        .clickable(indication = null, // Removes the ripple effect
-            interactionSource = remember { MutableInteractionSource() } // Disables interaction tracking
-        ) { focusManager.clearFocus() } // close keyboards on click
+    val customButtonEnabled by remember {
+        derivedStateOf {
+            state.quantity.toFloatOrNull()?.let { it > 0F } == true &&
+                    state.protein.toFloatOrNull()?.let { it > 0F } == true &&
+                    state.source.isNotEmpty()
+        }
+    }
+
+    val selectionButtonEnabled by remember {
+        derivedStateOf {
+            state.quantity.toFloatOrNull()?.let { it > 0F } == true &&
+                    sourceData != null
+        }
+    }
+
+    // ensure source list is loaded
+    LaunchedEffect(Unit) { viewModel.fetchSourceList(localContext) }
+
+    var addCustomItem by remember { mutableStateOf(true) } // may just use source to check
+
+    Column(
+        modifier = Modifier
+            .padding(paddingValues)
+            .fillMaxSize()
+            .clickable(
+                indication = null, // Removes the ripple effect
+                interactionSource = remember { MutableInteractionSource() } // Disables interaction tracking
+            ) { focusManager.clearFocus() } // close keyboards on click
     ) {
-
-        ContentRow(content = {
+        ContentRow {
             Text("Logging Protein for ${formatDate(selectedDate)}")
-            IconButton(onClick = {
-                showDateDialog = true
-            }) {
-                Icon(
-                    imageVector = Icons.Default.DateRange, contentDescription = "Select Date"
-                )
+            IconButton(onClick = { state = state.copy(showDateDialog = true) }) {
+                Icon(imageVector = Icons.Default.DateRange, contentDescription = "Select Date")
             }
-        })
+        }
 
         ContentRow(content = {
             Column(
                 modifier = paddingModifier.weight(2f),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                LaunchedEffect(Unit) { // Ensures fetchSourceList is called once when the composable is displayed
-                    viewModel.fetchSourceList(localContext)
-                }
-
                 if (sourceList.isNotEmpty()) {
                     DropdownSelector(
                         label = "Source:",
                         options = sourceList,
-                        setValue = viewModel::setSourceSelection,
+                        setValue = {
+                            viewModel.setSourceSelection(it)
+                            addCustomItem = it == CUSTOM
+                        },
                     )
                 } else {
                     Text("Loading Sources..")
@@ -121,9 +137,12 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
             Column(
                 modifier = paddingModifier.weight(2f)
             ) {
-                QuantityInput(label = "Quantity:", setValue = { newValue ->
-                    viewModel.setLogQuantity(newValue)
-                })
+                InputField(
+                    label = "Quantity:",
+                    value = state.quantity,
+                    onValueChange = { state = state.copy(quantity = it) },
+                    keyboardType = KeyboardType.Number
+                )
             }
 
             // TODO: If the selected source has a servingUnit of Serving, only allow Serving selection
@@ -133,7 +152,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 DropdownSelector(
                     label = "Unit:",
                     options = viewModel.sizeUnitSelections,
-                    setValue = viewModel::setLogUnit,
+                    setValue = { state = state.copy(unit = it) }
                 )
             }
         })
@@ -144,10 +163,12 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                     modifier = Modifier.padding(start = 25.dp, end = 25.dp)
                 ) {
                     SelectionButton(
-                        label = "Add Selection", action = {
-                            viewModel.addLogFromSelection()
+                        label = "Add Selection",
+                        action = {
+                            viewModel.addLogFromSelection(state.quantity, state.unit)
                             popBackStack()
-                        }, enabled = selectionButtonEnabled
+                        },
+                        enabled = selectionButtonEnabled
                     )
                 }
             })
@@ -157,19 +178,21 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 Column(
                     modifier = paddingModifier.weight(2f)
                 ) {
-                    CustomSourceInput(viewModel, "Source:")
+                    InputField("Source:", state.source, { state = state.copy(source = it) })
                 }
 
                 Column(
                     modifier = paddingModifier.weight(2f)
                 ) {
-                    QuantityInput(label = "Grams Protein / Serving:", setValue = { newValue ->
-                        viewModel.setCustomProteinContent(newValue)
-                    })
+                    InputField(
+                        label = "Grams Protein / Serving:",
+                        value = state.protein,
+                        onValueChange = { state = state.copy(protein = it) },
+                        keyboardType = KeyboardType.Number)
                 }
             })
 
-            StoreCustomOption(viewModel)
+            StoreCustomOption { state = state.copy(storeCustom = it) }
 
             // custom submit
             ContentRow(content = {
@@ -177,32 +200,56 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                     modifier = Modifier.padding(start = 25.dp, end = 25.dp)
                 ) {
                     SelectionButton(
-                        label = "Add Custom Item", action = {
-                            viewModel.addCustomItem()
-                            if (!viewModel.storeCustom) {
+                        label = "Add Custom Item",
+                        action = {
+                            if (state.storeCustom) {
+                                viewModel.buildCustomSource(
+                                    state.unit,
+                                    state.quantity,
+                                    state.source,
+                                    state.protein
+                                )
+                            } else {
+                                viewModel.addCustomLog(
+                                    state.source,
+                                    state.unit,
+                                    state.quantity,
+                                    state.protein
+                                )
                                 popBackStack()
                             }
-                        }, enabled = customButtonEnabled
+                        },
+                        enabled = customButtonEnabled
                     )
                 }
             })
         }
 
-        // store custom dialog - TODO: not working
-        if (showStoreDialog) {
-            ConfirmDialog(viewModel, popBackStack)
+        newCustomSource?.let { newSource ->
+            ConfirmDialog(
+                newSource,
+                onConfirm = {
+                    viewModel.storeCustomItem()
+                    viewModel.addCustomLog(state.source, state.unit, state.quantity, state.protein)
+                    popBackStack()
+                },
+                onDismiss = {
+                    viewModel.addCustomLog(state.source, state.unit, state.quantity, state.protein)
+                    popBackStack()
+                }
+            )
         }
 
-        if (showDateDialog) {
+        if (state.showDateDialog) {
             DatePickerModal(currentDate = localDateToEpochMilli(selectedDate),
-                onDateSelected = { selected ->
-                    viewModel.dateSelected(selected)
-                },
-                onDismiss = { showDateDialog = false })
+                onDateSelected = { viewModel.dateSelected(it) },
+                onDismiss = { state = state.copy(showDateDialog = false) }
+            )
         }
     }
 }
 
+// TODO: See if any of these ContentRows can be removed
 @Composable
 fun ContentRow(content: @Composable () -> Unit) {
     Row(
@@ -217,42 +264,13 @@ fun ContentRow(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun QuantityInput(label: String, setValue: (String) -> Unit) {
-    var input by remember { mutableStateOf("0") }
-    TextField(
-        value = input,
-        onValueChange = { newVal ->
-            input = newVal.trimStart { it == '0' }
-            setValue(newVal)
-        },
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-    )
-}
-
-@Composable
-fun CustomSourceInput(viewModel: LogNutritionViewModel, label: String) {
-    var input by remember { mutableStateOf("") }
-    TextField(
-        value = input,
-
-        onValueChange = { newVal ->
-            input = newVal
-            viewModel.setCustomFoodName(newVal)
-        },
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
-    )
-}
-
-@Composable
-fun StoreCustomOption(viewModel: LogNutritionViewModel) {
+fun StoreCustomOption(setStoreCustom: (Boolean) -> Unit) {
     var checked by remember { mutableStateOf(true) }
     ContentRow(content = {
         Text("Remember Custom Item")
         Checkbox(checked = checked, onCheckedChange = {
             checked = it
-            viewModel.storeCustom = it
+            setStoreCustom(it)
         })
     })
 }

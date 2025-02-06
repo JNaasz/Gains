@@ -18,17 +18,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.gains.features.nutrition.LogNutritionViewModel
+import com.example.gains.database.ProteinSource
 
 @Composable
 fun ConfirmDialog(
-    viewModel: LogNutritionViewModel,
-    popBackStack: () -> Unit
+    newSource: ProteinSource,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     Dialog(
         onDismissRequest = {
-            viewModel.onDismissDialog()
-            popBackStack()
+            onDismiss()
         }
     ) {
         Card(
@@ -45,18 +45,16 @@ fun ConfirmDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    text = "Item will be saved as: ",
+                    text = "Item will be saved to Sources as: ",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .wrapContentSize(Alignment.Center)
-                        .padding(bottom = 8.dp),
+                        .wrapContentSize(Alignment.Center),
                     textAlign = TextAlign.Center,
                 )
-
                 // TODO: format base serving text and style
-                Text("Name: ${viewModel.newSource.name}")
-                Text("Serving: ${viewModel.newSource.servingSize}${viewModel.newSource.servingUnit}")
-                Text("Protein Content: ${viewModel.newSource.proteinPerServing}g")
+                Text("Name: ${newSource.name}")
+                Text("Serving: ${newSource.servingSize}${newSource.servingUnit}")
+                Text("Protein Content: ${newSource.proteinPerServing}g")
 
                 Row(
                     modifier = Modifier
@@ -65,8 +63,7 @@ fun ConfirmDialog(
                 ) {
                     TextButton(
                         onClick = {
-                            viewModel.onDismissDialog()
-                            popBackStack()
+                            onDismiss()
                         },
                         modifier = Modifier.padding(8.dp),
                     ) {
@@ -74,8 +71,7 @@ fun ConfirmDialog(
                     }
                     TextButton(
                         onClick = {
-                            viewModel.storeCustomItem()
-                            popBackStack()
+                            onConfirm()
                         },
                         modifier = Modifier.padding(8.dp),
                     ) {
