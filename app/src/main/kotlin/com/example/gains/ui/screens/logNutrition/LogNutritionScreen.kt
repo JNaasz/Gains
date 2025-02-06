@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.nutrition.LogNutritionViewModel
+import com.example.gains.features.nutrition.SizeUnit
+import com.example.gains.features.nutrition.Util.CUSTOM
 import com.example.gains.features.nutrition.Util.formatDate
 import com.example.gains.features.nutrition.Util.localDateToEpochMilli
 import com.example.gains.ui.common.DatePickerModal
@@ -60,16 +62,36 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
     val localContext = LocalContext.current
     val paddingModifier = Modifier.padding(8.dp)
 
-    val addCustomItem by viewModel.addCustomItem.collectAsState()
-    val customButtonEnabled by viewModel.customButtonEnabled.collectAsState()
-    val selectionButtonEnabled by viewModel.selectionButtonEnabled.collectAsState()
-    val showStoreDialog by viewModel.showDialog.collectAsState()
     val sourceData by viewModel.sourceData.collectAsState()
     val sourceList by viewModel.sourceList.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
+    val newCustomSource by viewModel.newSource.collectAsState()
 
     var storeCustom by remember { mutableStateOf(true) }
     var showDateDialog by remember { mutableStateOf(false) }
+    var addCustomItem by remember { mutableStateOf(true) } // may just use source to check
+
+    // keep track of the inputs
+    var quantityInput by remember { mutableStateOf("0") }
+    var unitInput by remember { mutableStateOf(SizeUnit.SERVING.symbol) }
+    var sourceInput by remember { mutableStateOf("") }
+    var proteinInput by remember { mutableStateOf("0") }
+
+    var customButtonEnabled by remember { mutableStateOf(false) }
+    var selectionButtonEnabled by remember { mutableStateOf(false) }
+
+    // update button enablement states when input values change
+    LaunchedEffect(quantityInput, unitInput, sourceInput, proteinInput, sourceData) {
+        val quantity = quantityInput.toFloatOrNull() ?: 0F
+        val protein = proteinInput.toFloatOrNull() ?: 0F
+
+        customButtonEnabled = quantity > 0F && protein > 0F && sourceInput.isNotEmpty()
+        selectionButtonEnabled = quantity > 0F && sourceData != null
+    }
+
+    fun addCustomLog() {
+        viewModel.addCustomLog(sourceInput, unitInput, quantityInput, proteinInput)
+    }
 
     Column(modifier = Modifier
         .padding(paddingValues)
@@ -103,7 +125,10 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                     DropdownSelector(
                         label = "Source:",
                         options = sourceList,
-                        setValue = viewModel::setSourceSelection,
+                        setValue = {
+                            viewModel.setSourceSelection(it)
+                            addCustomItem = it == CUSTOM
+                        },
                     )
                 } else {
                     Text("Loading Sources..")
@@ -122,9 +147,13 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
             Column(
                 modifier = paddingModifier.weight(2f)
             ) {
-                QuantityInput(label = "Quantity:", setValue = { newValue ->
-                    viewModel.setLogQuantity(newValue)
-                })
+                QuantityInput(
+                    label = "Quantity:",
+                    value = quantityInput,
+                    setValue = { newValue ->
+                        quantityInput = newValue
+                    }
+                )
             }
 
             // TODO: If the selected source has a servingUnit of Serving, only allow Serving selection
@@ -134,7 +163,9 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 DropdownSelector(
                     label = "Unit:",
                     options = viewModel.sizeUnitSelections,
-                    setValue = viewModel::setLogUnit,
+                    setValue = { value ->
+                        unitInput = value
+                    },
                 )
             }
         })
@@ -146,7 +177,7 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 ) {
                     SelectionButton(
                         label = "Add Selection", action = {
-                            viewModel.addLogFromSelection()
+                            viewModel.addLogFromSelection(quantityInput, unitInput)
                             popBackStack()
                         }, enabled = selectionButtonEnabled
                     )
@@ -158,15 +189,23 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 Column(
                     modifier = paddingModifier.weight(2f)
                 ) {
-                    CustomSourceInput(viewModel, "Source:")
+                    CustomSourceInput(
+                        label = "Source:",
+                        value = sourceInput,
+                        setValue = { value -> sourceInput = value }
+                    )
                 }
 
                 Column(
                     modifier = paddingModifier.weight(2f)
                 ) {
-                    QuantityInput(label = "Grams Protein / Serving:", setValue = { newValue ->
-                        viewModel.setCustomProteinContent(newValue)
-                    })
+                    QuantityInput(
+                        label = "Grams Protein / Serving:",
+                        value = proteinInput,
+                        setValue = { newValue ->
+                            proteinInput = newValue
+                        }
+                    )
                 }
             })
 
@@ -179,19 +218,36 @@ fun LogNutritionContent(paddingValues: PaddingValues, popBackStack: () -> Unit) 
                 ) {
                     SelectionButton(
                         label = "Add Custom Item", action = {
-                            viewModel.addCustomItem(storeCustom)
+                            // check if we are trying to save it
+                            // if so, prompt store modal
                             if (storeCustom) {
+                                viewModel.buildCustomSource(unitInput, quantityInput, sourceInput, proteinInput)
+                            } else {
+                                // otherwise add the custom log and popBack
+                                addCustomLog()
                                 popBackStack()
                             }
+
                         }, enabled = customButtonEnabled
                     )
                 }
             })
         }
 
-        // store custom dialog - TODO: not working
-        if (showStoreDialog) {
-            ConfirmDialog(viewModel, popBackStack)
+        // if new custom source exists then load add source dialog
+        newCustomSource?.let { newSource ->
+            ConfirmDialog(
+                newSource,
+                onConfirm = {
+                    viewModel.storeCustomItem()
+                    addCustomLog()
+                    popBackStack()
+                },
+                onDismiss = {
+                    addCustomLog()
+                    popBackStack()
+                }
+            )
         }
 
         if (showDateDialog) {
@@ -218,13 +274,12 @@ fun ContentRow(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun QuantityInput(label: String, setValue: (String) -> Unit) {
-    var input by remember { mutableStateOf("0") }
+fun QuantityInput(label: String, value: String, setValue: (String) -> Unit) {
     TextField(
-        value = input,
+        value = value,
         onValueChange = { newVal ->
-            input = newVal.trimStart { it == '0' }
-            setValue(newVal)
+            val trimmedValue = newVal.trimStart { it == '0' }
+            setValue(trimmedValue)
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
@@ -232,14 +287,12 @@ fun QuantityInput(label: String, setValue: (String) -> Unit) {
 }
 
 @Composable
-fun CustomSourceInput(viewModel: LogNutritionViewModel, label: String) {
-    var input by remember { mutableStateOf("") }
+fun CustomSourceInput(label: String, value: String, setValue: (String) -> Unit) {
     TextField(
-        value = input,
+        value = value,
 
         onValueChange = { newVal ->
-            input = newVal
-            viewModel.setCustomFoodName(newVal)
+            setValue(newVal)
         },
         label = { Text(label) },
         keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
