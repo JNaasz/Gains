@@ -12,11 +12,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    nutritionRepository: NutritionRepository
+    private val nutritionRepository: NutritionRepository
 ) : ViewModel() {
 
     private val date = LocalDate.now()
 
     val proteinTotal: StateFlow<Float> = nutritionRepository.getProteinTotal(date)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0F)
+
+    fun getProteinTarget(): Int {
+        return nutritionRepository.getProteinTarget()
+    }
 }

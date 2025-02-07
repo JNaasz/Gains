@@ -13,7 +13,7 @@ fun NavBackIcon(
     IconButton(onClick = popBackStack) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Localized Description"
+            contentDescription = "Navigate Back Icon"
         )
     }
 }

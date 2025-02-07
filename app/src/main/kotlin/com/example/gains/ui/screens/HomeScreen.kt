@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.home.HomeViewModel
+import com.example.gains.ui.common.NavBar
+import com.example.gains.ui.common.SettingsIcon
 import com.example.gains.ui.theme.GainsTheme
 import com.example.gains.ui.theme.high
 import com.example.gains.ui.theme.highPressed
@@ -34,20 +36,45 @@ import com.example.gains.ui.theme.mediumPressed
 import com.example.gains.ui.theme.percentText
 import java.text.NumberFormat
 
+
 @Composable
 fun HomeScreen(
     navigateToNutrition: () -> Unit,
     navigateToLogNutrition: () -> Unit,
+    navigateToNutritionSettings: () -> Unit,
+) {
+    NavBar(
+        title = "Gains",
+        scrollContent = { paddingValues: PaddingValues ->
+            HomeScreenContent(
+                navigateToNutrition,
+                navigateToLogNutrition,
+                paddingValues,
+            )
+        },
+        optionalActionComponent = {
+            SettingsIcon(navigateToNutritionSettings)
+        }
+    )
+}
+
+@Composable
+fun HomeScreenContent(
+    navigateToNutrition: () -> Unit,
+    navigateToLogNutrition: () -> Unit,
+    paddingValues: PaddingValues,
 ) {
     val viewModel: HomeViewModel = hiltViewModel()
     val proteinTotal by viewModel.proteinTotal.collectAsState()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        ProteinGoal(proteinTotal.toInt(), 130, navigateToNutrition)
+        ProteinGoal(proteinTotal.toInt(), viewModel.getProteinTarget(), navigateToNutrition)
         TextColumn()
         MainButton("Log Protein") { navigateToLogNutrition() }
         MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
@@ -92,7 +119,7 @@ fun ProteinGoal(current: Int, goal: Int, navigateToNutrition: () -> Unit) {
         if (isPressed) mediumPressed
         else medium
     } else if (isPressed) lowPressed
-        else low
+    else low
 
     Box(
         contentAlignment = Alignment.Center,
@@ -117,9 +144,11 @@ fun ProteinGoal(current: Int, goal: Int, navigateToNutrition: () -> Unit) {
 
 @Composable
 fun TextColumn() {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(20.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
         TextChunk(getStepText())
         TextChunk(getActivitiesText())
     }

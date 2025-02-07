@@ -1,6 +1,7 @@
 package com.example.gains.features.nutrition
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.example.gains.database.NutritionDao
 import com.example.gains.database.NutritionLog
 import com.example.gains.database.ProteinSource
@@ -19,11 +20,14 @@ interface NutritionRepository {
     fun getProteinSources(): Flow<List<ProteinSource>>
     suspend fun storeProteinSource(source: ProteinSource)
     fun getDefaultSelections(context: Context): List<ProteinSource>?
+    fun getProteinTarget(): Int
+    fun setProteinTarget(target: Int)
 }
 
 class NutritionRepositoryImpl(
     private val nutritionDao: NutritionDao,
     private val proteinSourcesDao: ProteinSourcesDao,
+    private val sharedPreferences: SharedPreferences,
 ) : NutritionRepository {
     private var defaultProteinSelections: List<ProteinSource>? = null
 
@@ -60,5 +64,18 @@ class NutritionRepositoryImpl(
         }
 
         return defaultProteinSelections
+    }
+
+    override fun getProteinTarget(): Int {
+        return sharedPreferences.getInt(PROTEIN_TARGET_KEY, DEFAULT_PROTEIN_GOAL)
+    }
+
+    override fun setProteinTarget(target: Int) {
+        sharedPreferences.edit().putInt(PROTEIN_TARGET_KEY, target).apply()
+    }
+
+    companion object {
+        private const val PROTEIN_TARGET_KEY = "protein_target"
+        private const val DEFAULT_PROTEIN_GOAL = 130
     }
 }

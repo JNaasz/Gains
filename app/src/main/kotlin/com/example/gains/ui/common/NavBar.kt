@@ -15,7 +15,8 @@ import androidx.compose.ui.text.style.TextOverflow
 fun NavBar(
     title: String,
     scrollContent: @Composable (PaddingValues) -> Unit,
-    optionalActionComponent: (@Composable () -> Unit)? = null
+    optionalNavigationComponent: (@Composable () -> Unit)? = null,
+    optionalActionComponent: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
@@ -29,8 +30,12 @@ fun NavBar(
                 )
             },
             navigationIcon = {
-                optionalActionComponent?.invoke()
+                optionalNavigationComponent?.invoke()
             },
+            actions = {
+                optionalActionComponent?.invoke()
+            }
+
         )
     }) { paddingValues ->
         scrollContent(paddingValues)

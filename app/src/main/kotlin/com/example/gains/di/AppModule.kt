@@ -1,6 +1,7 @@
 package com.example.gains.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
 import com.example.gains.database.GainsRoomDB
 import com.example.gains.database.Migrations
@@ -44,8 +45,15 @@ object AppModule {
     @Provides
     fun provideNutritionRepository(
         nutritionDao: NutritionDao,
-        proteinSourcesDao: ProteinSourcesDao
+        proteinSourcesDao: ProteinSourcesDao,
+        sharedPreferences: SharedPreferences,
     ): NutritionRepository {
-        return NutritionRepositoryImpl(nutritionDao, proteinSourcesDao)
+        return NutritionRepositoryImpl(nutritionDao, proteinSourcesDao, sharedPreferences)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
+        return context.getSharedPreferences("protein_target", Context.MODE_PRIVATE)
     }
 }

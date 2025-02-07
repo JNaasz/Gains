@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.example.gains.ui.screens.HomeScreen
 import com.example.gains.ui.screens.logNutrition.LogNutritionScreen
 import com.example.gains.ui.screens.nutrition.NutritionScreen
+import com.example.gains.ui.screens.settings.NutritionSettingsScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -22,6 +23,8 @@ fun NavGraph(navController: NavHostController) {
         addNutritionScreen(navController, this)
 
         addLogNutritionScreen(navController, this)
+
+        addNutritionSettingsScreen(navController, this)
     }
 }
 
@@ -37,6 +40,9 @@ private fun addHomeScreen(
             },
             navigateToLogNutrition = {
                 navController.navigate(NavRoute.LogNutrition.path)
+            },
+            navigateToNutritionSettings = {
+                navController.navigate(NavRoute.NutritionSettings.path)
             }
         )
     }
@@ -64,6 +70,18 @@ private fun addLogNutritionScreen(
     navGraphBuilder.composable(route = NavRoute.LogNutrition.path) {
 
         LogNutritionScreen(
+            popBackStack = { navController.popBackStack() },
+        )
+    }
+}
+
+private fun addNutritionSettingsScreen(
+    navController: NavHostController,
+    navGraphBuilder: NavGraphBuilder
+) {
+    navGraphBuilder.composable(route = NavRoute.NutritionSettings.path) {
+
+        NutritionSettingsScreen(
             popBackStack = { navController.popBackStack() },
         )
     }

@@ -50,7 +50,7 @@ fun LogNutritionScreen(popBackStack: () -> Unit) {
         scrollContent = { paddingValues ->
             LogNutritionContent(paddingValues, popBackStack)
         },
-        optionalActionComponent = { NavBackIcon(popBackStack) }
+        optionalNavigationComponent = { NavBackIcon(popBackStack) }
     )
 }
 

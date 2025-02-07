@@ -2,9 +2,11 @@ package com.example.gains.ui.navigation
 
 sealed class NavRoute(val path: String) {
 
-    object Nutrition: NavRoute("nutrition")
+    data object Nutrition: NavRoute("nutrition")
 
-    object LogNutrition: NavRoute("log-nutrition")
+    data object LogNutrition: NavRoute("log-nutrition")
 
-    object Home: NavRoute("home")
+    data object Home: NavRoute("home")
+
+    data object NutritionSettings: NavRoute("nutrition-settings")
 }

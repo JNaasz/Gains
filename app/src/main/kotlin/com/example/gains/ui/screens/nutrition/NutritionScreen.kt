@@ -43,7 +43,7 @@ fun NutritionScreen(
                 viewModel
             )
         },
-        optionalActionComponent = {
+        optionalNavigationComponent = {
             NavBackIcon(popBackStack)
         }
     )
