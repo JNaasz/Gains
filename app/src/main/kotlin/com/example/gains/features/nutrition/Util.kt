@@ -18,7 +18,7 @@ object Util {
 
     private var selections: List<ProteinSource>? = null
 
-    fun getSourceList(
+    fun mergeSourceList(
         customSources: List<ProteinSource>,
         defaultSelections: List<ProteinSource>?
     ): List<String> {

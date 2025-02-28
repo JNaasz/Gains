@@ -10,13 +10,11 @@ import com.example.gains.database.ProteinSource
 import com.example.gains.features.nutrition.Util.calculateProtein
 import com.example.gains.features.nutrition.Util.epochMilliToLocalDate
 import com.example.gains.features.nutrition.Util.getMatchedSelectionData
-import com.example.gains.features.nutrition.Util.getSourceList
+import com.example.gains.features.nutrition.Util.mergeSourceList
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -26,11 +24,6 @@ class LogNutritionViewModel @Inject constructor(
     application: Application,
     private val nutritionRepository: NutritionRepository,
 ) : AndroidViewModel(application) {
-    // TODO: attempt to move custom source list?
-    private val customSourceList: StateFlow<List<ProteinSource>> =
-        nutritionRepository.getProteinSources()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
     private val _sourceList = MutableStateFlow(emptyList<String>())
     val sourceList: StateFlow<List<String>> = _sourceList
 
@@ -47,9 +40,8 @@ class LogNutritionViewModel @Inject constructor(
 
     fun fetchSourceList(context: Context) {
         viewModelScope.launch {
-            customSourceList.collectLatest { customSources ->
-                val defaultSourceSelections = nutritionRepository.getDefaultSelections(context)
-                _sourceList.value = getSourceList(customSources, defaultSourceSelections)
+            nutritionRepository.getProteinSourceList(viewModelScope, context).collect { mergedSources ->
+                _sourceList.value = mergedSources
             }
         }
     }
