@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,6 +49,9 @@ fun NutritionSettingsContent(paddingValues: PaddingValues) {
     val viewModel: NutritionSettingsViewModel = hiltViewModel()
     var editProtein by remember { mutableStateOf(false) }
     var proteinTarget by remember { mutableIntStateOf(viewModel.getProteinGoal()) }
+    val customSourceList by viewModel.customSourceList.collectAsState()
+
+    LaunchedEffect(Unit) { viewModel.fetchSourceList() }
 
     Column(
         modifier = Modifier
@@ -72,7 +78,9 @@ fun NutritionSettingsContent(paddingValues: PaddingValues) {
                 )
 
                 Button(
-                    modifier = Modifier.weight(1f).padding(start = 10.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 10.dp),
                     onClick = {
                         viewModel.setProteinGoal(proteinTarget)
                         editProtein = false
@@ -88,13 +96,18 @@ fun NutritionSettingsContent(paddingValues: PaddingValues) {
 
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, top = 10.dp),
-        ) {
-            Text("View/Remove Custom Sources")
-            // dropdown icon that loads the list of sources with delete option
-        }
+        ExpandableSelection(
+            label = "Custom Protein Sources",
+            listItems = {
+                // deleteAction
+                // editAction
+                // list
+                if (customSourceList.isNotEmpty()) {
+                    customSourceList.forEach { item ->
+                        CustomProteinItem(item)
+                    }
+                }
+            }
+        )
     }
 }
