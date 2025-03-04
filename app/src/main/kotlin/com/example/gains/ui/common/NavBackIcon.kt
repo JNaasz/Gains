@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 
 @Composable
@@ -13,7 +14,8 @@ fun NavBackIcon(
     IconButton(onClick = popBackStack) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Navigate Back Icon"
+            contentDescription = "Navigate Back Icon",
+            tint = MaterialTheme.colorScheme.onTertiary,
         )
     }
 }

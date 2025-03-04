@@ -13,6 +13,7 @@ User is able to view tracked protein for previous days.
 - [Usage](#usage)
 - [Features](#features)
 - [API Documentation](#api-documentation)
+- [Theming](#theming)
 
 ## Installation
 ### Prerequisites
@@ -43,3 +44,5 @@ Response:
 }
 ```
 
+## Theming
+Theming scheme was generated using the [Material Theme Builder](#https://material-foundation.github.io/material-theme-builder/)

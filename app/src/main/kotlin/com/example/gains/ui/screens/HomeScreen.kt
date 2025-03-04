@@ -6,11 +6,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,7 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.gains.features.home.HomeViewModel
 import com.example.gains.ui.common.NavBar
 import com.example.gains.ui.common.SettingsIcon
-import com.example.gains.ui.theme.GainsTheme
 import com.example.gains.ui.theme.high
 import com.example.gains.ui.theme.highPressed
 import com.example.gains.ui.theme.low
@@ -183,23 +187,15 @@ fun MainButton(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    GainsTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        )
-        {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                ProteinGoal(88, 130, {})
-                TextColumn()
-                MainButton("Log Protein") { buttonClick("Clicked Log Protein") }
-                MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
-                MainButton("Workouts") { buttonClick("Clicked Workouts") }
-            }
-        }
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        ProteinGoal(88, 130, {})
+        TextColumn()
+        MainButton("Log Protein") { buttonClick("Clicked Log Protein") }
+        MainButton("Track Strength/Mobility") { buttonClick("Clicked Track Strength/Mobility") }
+        MainButton("Workouts") { buttonClick("Clicked Workouts") }
     }
 }

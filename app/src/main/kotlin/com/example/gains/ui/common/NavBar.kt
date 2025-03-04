@@ -21,12 +21,13 @@ fun NavBar(
     Scaffold(topBar = {
         CenterAlignedTopAppBar(
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                titleContentColor = MaterialTheme.colorScheme.primary,
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.tertiary,
             ),
             title = {
                 Text(
-                    title, maxLines = 1, overflow = TextOverflow.Ellipsis
+                    title, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onTertiary,
                 )
             },
             navigationIcon = {
